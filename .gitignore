@@ -1,0 +1,49 @@
+# Local .terraform directories
+**/.terraform/*
+!.terraform/.gitignore
+
+# Terraform plan files
+*.tfplan
+
+# State files
+*.tfstate
+*.tfstate.*
+
+# Crash logs
+crash.log
+
+# Override files (commonly used for local testing)
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# Sensitive variable files
+*.auto.tfvars
+*.auto.tfvars.json
+terraform.tfvars
+terraform.tfvars.json
+
+# Provider override files
+.terraformrc
+terraform.rc
+
+# Core dump files
+core.*
+
+# Directory for variable values
+.terraform.lock.hcl
+
+# Ignore backup files
+*.bak
+
+# Ignore editor and OS specific files
+.DS_Store
+.idea/
+.vscode/
+*.swp
+*.swo
+*.tmp
+Thumbs.db
+
+**/create_app_user.sql
