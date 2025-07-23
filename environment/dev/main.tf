@@ -19,6 +19,7 @@ module "net" {
   short_project_name    = var.short_project_name
   tags                  = local.global_tags
   vpc_name              = var.vpc_name
+  nat_gateway_subnet    = var.nat_gateway_subnet
   my_access_ip          = var.my_access_ip
 }
 

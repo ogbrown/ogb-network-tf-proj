@@ -24,6 +24,16 @@ resource "aws_vpc" "vpc-use2-public" {
 
 }
 
+resource "aws_internet_gateway" "igw" {
+  vpc_id = aws_vpc.vpc-use2-public.id
+  tags = merge(
+    local.net_tags,
+    {
+      Name = "${var.short_project_name}-igw"
+    }
+  )
+}
+
 resource "aws_subnet" "use2-c-public" {
     vpc_id                   = aws_vpc.vpc-use2-public.id
     availability_zone_id     = var.availability_zone_ids[2]
@@ -38,6 +48,7 @@ resource "aws_subnet" "use2-c-public" {
         "Public" = "true"
       }
     )
+    depends_on = [aws_internet_gateway.igw]
 }
 
 resource "aws_subnet" "use2-b-public" {
@@ -54,6 +65,7 @@ resource "aws_subnet" "use2-b-public" {
       "Public" = "true"
     }
   )
+  depends_on = [aws_internet_gateway.igw]
 }
 
 resource "aws_subnet" "use2-a-public" {
@@ -70,6 +82,45 @@ resource "aws_subnet" "use2-a-public" {
       "Public" = "true"
     }
   )
+  depends_on = [aws_internet_gateway.igw]
+}
+
+resource "aws_eip" "nat_eip" {
+  domain   = "vpc"
+  tags = merge(
+    local.net_tags,
+    {
+      Name = "${var.short_project_name}-nat-eip"
+    }
+  )
+  depends_on = [aws_internet_gateway.igw]
+}
+
+resource "aws_nat_gateway" "nat_gateway" {
+  allocation_id = aws_eip.nat_eip.id
+  subnet_id     = aws_subnet.use2-c-public.id
+  tags = merge(
+    local.net_tags,
+    {
+      Name = "${var.short_project_name}-nat-gateway"
+    }
+  )
+}
+
+resource "aws_route_table" "private_route_table" {
+  vpc_id = aws_vpc.vpc-use2-public.id
+  tags = merge(
+    local.net_tags,
+    {
+      Name = "${var.short_project_name}-private-rt"
+    }
+  )
+}
+
+resource "aws_route" "private_route" {
+  route_table_id         = aws_route_table.private_route_table.id
+  destination_cidr_block = "0.0.0.0/0"
+  nat_gateway_id         = aws_nat_gateway.nat_gateway.id
 }
 
 resource "aws_subnet" "use2-c-private" {
@@ -86,6 +137,7 @@ resource "aws_subnet" "use2-c-private" {
       "Public" = "false"
     }
   )
+  depends_on = [aws_nat_gateway.nat_gateway, aws_route_table.private_route_table]
 }
 
 resource "aws_subnet" "use2-b-private" {
@@ -102,6 +154,7 @@ resource "aws_subnet" "use2-b-private" {
       "Public" = "false"
     }
   )
+  depends_on = [aws_nat_gateway.nat_gateway, aws_route_table.private_route_table]
 }
 
 resource "aws_subnet" "use2-a-private" {
@@ -118,4 +171,27 @@ resource "aws_subnet" "use2-a-private" {
       "Public" = "false"
     }
   )
+  depends_on = [aws_nat_gateway.nat_gateway, aws_route_table.private_route_table]
 }
+
+resource "aws_route_table_association" "private_a" {
+  subnet_id      = aws_subnet.use2-a-private.id
+  route_table_id = aws_route_table.private_route_table.id
+}
+
+resource "aws_route_table_association" "private_b" {
+  subnet_id      = aws_subnet.use2-b-private.id
+  route_table_id = aws_route_table.private_route_table.id
+}
+
+resource "aws_route_table_association" "private_c" {
+  subnet_id      = aws_subnet.use2-c-private.id
+  route_table_id = aws_route_table.private_route_table.id
+}
+
+
+
+
+
+
+

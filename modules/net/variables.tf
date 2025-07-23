@@ -29,3 +29,7 @@ variable "my_access_ip" {
   description = "Your IP address for security group rules"
   type        = string
 }
+variable "nat_gateway_subnet" {
+  description = "The public subnet to use for the NAT gateway"
+  type        = string
+}
